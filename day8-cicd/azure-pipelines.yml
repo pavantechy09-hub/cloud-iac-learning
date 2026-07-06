@@ -1,0 +1,91 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - day3-bicep/**
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - day3-bicep/**
+
+variables:
+  resourceGroup: 'bank-rg-dev'
+  location: 'eastus'
+  environment: 'dev'
+
+stages:
+  - stage: Validate
+    displayName: Validate Bicep
+    jobs:
+      - job: BicepBuild
+        displayName: Build and Validate
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: AzureCLI@2
+            displayName: Install Bicep
+            inputs:
+              azureSubscription: $(SERVICE_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az bicep install
+                az bicep version
+
+          - task: AzureCLI@2
+            displayName: Bicep Build
+            inputs:
+              azureSubscription: $(SERVICE_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az bicep build --file day3-bicep/vnet.bicep
+                az bicep build --file day3-bicep/keyvault.bicep
+                az bicep build --file day3-bicep/servicebus.bicep
+                echo "All Bicep files compiled successfully"
+
+          - task: AzureCLI@2
+            displayName: What-If (Preview Changes)
+            inputs:
+              azureSubscription: $(SERVICE_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az deployment group what-if \
+                  --resource-group $(resourceGroup) \
+                  --template-file day3-bicep/envs/dev/main.bicep \
+                  --parameters environment=$(environment) location=$(location)
+            condition: eq(variables['Build.Reason'], 'PullRequest')
+
+  - stage: Deploy
+    displayName: Deploy Bicep
+    dependsOn: Validate
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployBicep
+        displayName: Deploy to Azure
+        pool:
+          vmImage: ubuntu-latest
+        environment: dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureCLI@2
+                  displayName: Deploy VNet
+                  inputs:
+                    azureSubscription: $(SERVICE_CONNECTION)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az deployment group create \
+                        --resource-group $(resourceGroup) \
+                        --template-file day3-bicep/envs/dev/main.bicep \
+                        --parameters environment=$(environment) location=$(location) \
+                        --name "deploy-$(Build.BuildId)"
