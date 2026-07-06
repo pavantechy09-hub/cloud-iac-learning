@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.44.1.10279",
+      "templateHash": "5591974790594661822"
+    }
+  },
+  "parameters": {
+    "storageAccountName": {
+      "type": "string",
+      "defaultValue": "devstoreaccount1"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus"
+    },
+    "environment": {
+      "type": "string",
+      "defaultValue": "dev"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-02-01",
+      "name": "[parameters('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "tags": {
+        "environment": "[parameters('environment')]",
+        "managedBy": "bicep"
+      }
+    }
+  ],
+  "outputs": {
+    "storageAccountId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+    },
+    "blobEndpoint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2021-02-01').primaryEndpoints.blob]"
+    }
+  }
+}

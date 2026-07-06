@@ -1,0 +1,5 @@
+{
+  "environment": "dev",
+  "database": "db.internal",
+  "port": 5432
+}

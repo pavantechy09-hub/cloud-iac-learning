@@ -1,0 +1,318 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.44.1.10279",
+      "templateHash": "7581916256322138605"
+    }
+  },
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "defaultValue": "dev"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "vnet-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vnetAddressPrefix": {
+            "value": "10.0.0.0/16"
+          },
+          "publicSubnetPrefix": {
+            "value": "10.0.1.0/24"
+          },
+          "privateSubnetPrefix": {
+            "value": "10.0.2.0/24"
+          },
+          "dataSubnetPrefix": {
+            "value": "10.0.3.0/24"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.44.1.10279",
+              "templateHash": "11731827460895649500"
+            }
+          },
+          "parameters": {
+            "environment": {
+              "type": "string",
+              "defaultValue": "dev"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "eastus"
+            },
+            "vnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "10.0.0.0/16"
+            },
+            "publicSubnetPrefix": {
+              "type": "string",
+              "defaultValue": "10.0.1.0/24"
+            },
+            "privateSubnetPrefix": {
+              "type": "string",
+              "defaultValue": "10.0.2.0/24"
+            },
+            "dataSubnetPrefix": {
+              "type": "string",
+              "defaultValue": "10.0.3.0/24"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2021-02-01",
+              "name": "[format('{0}-vnet', parameters('environment'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "[parameters('vnetAddressPrefix')]"
+                  ]
+                },
+                "subnets": [
+                  {
+                    "name": "[format('{0}-public-subnet', parameters('environment'))]",
+                    "properties": {
+                      "addressPrefix": "[parameters('publicSubnetPrefix')]"
+                    }
+                  },
+                  {
+                    "name": "[format('{0}-private-subnet', parameters('environment'))]",
+                    "properties": {
+                      "addressPrefix": "[parameters('privateSubnetPrefix')]"
+                    }
+                  },
+                  {
+                    "name": "[format('{0}-data-subnet', parameters('environment'))]",
+                    "properties": {
+                      "addressPrefix": "[parameters('dataSubnetPrefix')]"
+                    }
+                  }
+                ]
+              },
+              "tags": {
+                "environment": "[parameters('environment')]",
+                "managedBy": "bicep"
+              }
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2021-02-01",
+              "name": "[format('{0}-public-nsg', parameters('environment'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "allow-http",
+                    "properties": {
+                      "priority": 100,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "80"
+                    }
+                  },
+                  {
+                    "name": "allow-https",
+                    "properties": {
+                      "priority": 110,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "443"
+                    }
+                  }
+                ]
+              },
+              "tags": {
+                "environment": "[parameters('environment')]",
+                "managedBy": "bicep"
+              }
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2021-02-01",
+              "name": "[format('{0}-private-nsg', parameters('environment'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "allow-from-public-subnet",
+                    "properties": {
+                      "priority": 100,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "[parameters('publicSubnetPrefix')]",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "8080"
+                    }
+                  },
+                  {
+                    "name": "deny-internet-inbound",
+                    "properties": {
+                      "priority": 200,
+                      "protocol": "*",
+                      "access": "Deny",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "Internet",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "*"
+                    }
+                  }
+                ]
+              },
+              "tags": {
+                "environment": "[parameters('environment')]",
+                "managedBy": "bicep"
+              }
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2021-02-01",
+              "name": "[format('{0}-data-nsg', parameters('environment'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "allow-from-private-subnet",
+                    "properties": {
+                      "priority": 100,
+                      "protocol": "Tcp",
+                      "access": "Allow",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "[parameters('privateSubnetPrefix')]",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "5432"
+                    }
+                  },
+                  {
+                    "name": "deny-all-inbound",
+                    "properties": {
+                      "priority": 200,
+                      "protocol": "*",
+                      "access": "Deny",
+                      "direction": "Inbound",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "*"
+                    }
+                  }
+                ]
+              },
+              "tags": {
+                "environment": "[parameters('environment')]",
+                "managedBy": "bicep"
+              }
+            }
+          ],
+          "outputs": {
+            "vnetId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('environment')))]"
+            },
+            "vnetName": {
+              "type": "string",
+              "value": "[format('{0}-vnet', parameters('environment'))]"
+            },
+            "publicSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('environment'))), '2021-02-01').subnets[0].id]"
+            },
+            "privateSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('environment'))), '2021-02-01').subnets[1].id]"
+            },
+            "dataSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', format('{0}-vnet', parameters('environment'))), '2021-02-01').subnets[2].id]"
+            },
+            "nsgPublicId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-public-nsg', parameters('environment')))]"
+            },
+            "nsgPrivateId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-private-nsg', parameters('environment')))]"
+            },
+            "nsgDataId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/networkSecurityGroups', format('{0}-data-nsg', parameters('environment')))]"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "vnetId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.vnetId.value]"
+    },
+    "vnetName": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.vnetName.value]"
+    },
+    "publicSubnetId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.publicSubnetId.value]"
+    },
+    "privateSubnetId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.privateSubnetId.value]"
+    },
+    "dataSubnetId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.dataSubnetId.value]"
+    },
+    "nsgPublicId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.nsgPublicId.value]"
+    },
+    "nsgPrivateId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.nsgPrivateId.value]"
+    },
+    "nsgDataId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.nsgDataId.value]"
+    }
+  }
+}
