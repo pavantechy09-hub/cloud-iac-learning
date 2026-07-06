@@ -1,0 +1,97 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.44.1.10279",
+      "templateHash": "15019280844676707226"
+    }
+  },
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "defaultValue": "dev"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2023-04-15",
+      "name": "[format('{0}-bank-cosmos', parameters('environment'))]",
+      "location": "[parameters('location')]",
+      "kind": "GlobalDocumentDB",
+      "properties": {
+        "consistencyPolicy": {
+          "defaultConsistencyLevel": "Session"
+        },
+        "locations": [
+          {
+            "locationName": "[parameters('location')]",
+            "failoverPriority": 0,
+            "isZoneRedundant": false
+          }
+        ],
+        "databaseAccountOfferType": "Standard",
+        "enableAutomaticFailover": true
+      },
+      "tags": {
+        "environment": "[parameters('environment')]",
+        "managedBy": "bicep"
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+      "apiVersion": "2023-04-15",
+      "name": "[format('{0}/{1}', format('{0}-bank-cosmos', parameters('environment')), 'bank-transactions')]",
+      "properties": {
+        "resource": {
+          "id": "bank-transactions"
+        },
+        "options": {
+          "throughput": 400
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', format('{0}-bank-cosmos', parameters('environment')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+      "apiVersion": "2023-04-15",
+      "name": "[format('{0}/{1}/{2}', format('{0}-bank-cosmos', parameters('environment')), 'bank-transactions', 'fraud-events')]",
+      "properties": {
+        "resource": {
+          "id": "fraud-events",
+          "partitionKey": {
+            "paths": [
+              "/accountId"
+            ],
+            "kind": "Hash"
+          },
+          "indexingPolicy": {
+            "indexingMode": "consistent",
+            "automatic": true
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', format('{0}-bank-cosmos', parameters('environment')), 'bank-transactions')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "cosmosAccountId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.DocumentDB/databaseAccounts', format('{0}-bank-cosmos', parameters('environment')))]"
+    },
+    "cosmosEndpoint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', format('{0}-bank-cosmos', parameters('environment'))), '2023-04-15').documentEndpoint]"
+    }
+  }
+}

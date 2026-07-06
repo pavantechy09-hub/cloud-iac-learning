@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.44.1.10279",
+      "templateHash": "1836674731524268876"
+    }
+  },
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "defaultValue": "dev"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus"
+    },
+    "sqlAdminLogin": {
+      "type": "string",
+      "defaultValue": "bankadmin"
+    },
+    "sqlAdminPassword": {
+      "type": "securestring"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2021-11-01",
+      "name": "[format('{0}-bank-sql', parameters('environment'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "administratorLogin": "[parameters('sqlAdminLogin')]",
+        "administratorLoginPassword": "[parameters('sqlAdminPassword')]",
+        "version": "12.0",
+        "minimalTlsVersion": "1.2",
+        "publicNetworkAccess": "Disabled"
+      },
+      "tags": {
+        "environment": "[parameters('environment')]",
+        "managedBy": "bicep"
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2021-11-01",
+      "name": "[format('{0}/{1}', format('{0}-bank-sql', parameters('environment')), 'accounts')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "S1",
+        "tier": "Standard"
+      },
+      "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "maxSizeBytes": 2147483648,
+        "zoneRedundant": false
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', format('{0}-bank-sql', parameters('environment')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "sqlServerId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Sql/servers', format('{0}-bank-sql', parameters('environment')))]"
+    },
+    "sqlServerFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Sql/servers', format('{0}-bank-sql', parameters('environment'))), '2021-11-01').fullyQualifiedDomainName]"
+    },
+    "sqlDatabaseId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Sql/servers/databases', format('{0}-bank-sql', parameters('environment')), 'accounts')]"
+    }
+  }
+}
