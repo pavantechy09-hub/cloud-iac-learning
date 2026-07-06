@@ -36,12 +36,15 @@ resource "aws_db_instance" "accounts_db" {
   username               = "bankadmin"
   password               = "TempPassword123!"
   vpc_security_group_ids = [aws_security_group.db.id]
-  backup_retention_period = 7
-  deletion_protection    = false
-  skip_final_snapshot    = true
+  backup_retention_period    = 7
+  deletion_protection        = false
+  skip_final_snapshot        = true
+  storage_encrypted          = true
+  auto_minor_version_upgrade = true
 }
 resource "aws_secretsmanager_secret" "db_password" {
-  name = "bank/accounts-db/password"
+  name                    = "bank/accounts-db/password"
+  recovery_window_in_days = 7
 }
 
 resource "aws_secretsmanager_secret_version" "db_password" {
@@ -89,4 +92,22 @@ resource "aws_s3_bucket_lifecycle_configuration" "transaction_archive" {
       days = 2555
     }
   }
+}
+
+resource "aws_s3_bucket_public_access_block" "transaction_archive" {
+  bucket = aws_s3_bucket.transaction_archive.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_public_access_block" "flow_logs" {
+  bucket = aws_s3_bucket.flow_logs.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
