@@ -252,3 +252,134 @@ IGW to ALB in public subnet, ALB health checks targets and forwards to
 healthy app server in private subnet on port 8080, app server queries
 database in data subnet on port 5432, response travels back same path,
 user sees the page. Each hop is controlled by security group rules.
+---
+
+## Day 2B — VPC Endpoints (Advanced Networking)
+
+### What Was Learned
+VPC Endpoints keep traffic between private subnet resources and AWS services
+like S3 and DynamoDB entirely within the AWS private network.
+Code written and commented out in modules/vpc/main.tf for real AWS use.
+
+### Why VPC Endpoints Matter
+
+Without endpoint — payment service to S3:
+    payment service (10.0.2.24)
+      ? NAT Gateway
+      ? public internet  ? compliance fail for PCI-DSS, HIPAA
+      ? S3
+
+With endpoint — payment service to S3:
+    payment service (10.0.2.24)
+      ? VPC Endpoint (special S3 route in route table)
+      ? AWS private backbone  ? never touches public internet
+      ? S3
+
+### Two Types of VPC Endpoints
+
+    Gateway Endpoint
+      Free
+      Only S3 and DynamoDB
+      Adds a route in your route table
+      NOT a physical component — just a routing rule
+      Zero application code changes needed
+
+    Interface Endpoint (PrivateLink)
+      Costs $0.01 per hour plus $0.01 per GB
+      Works for 100+ AWS services (SQS, SNS, Secrets Manager etc)
+      Creates an ENI with private IP inside your subnet
+      App calls private IP instead of public endpoint
+
+### How Gateway Endpoint Works
+    Before endpoint — private route table:
+      10.0.0.0/16               ? local
+      0.0.0.0/0                 ? NAT Gateway
+
+    After endpoint — private route table:
+      10.0.0.0/16               ? local
+      0.0.0.0/0                 ? NAT Gateway
+      com.amazonaws.us-east-1.s3 ? vpce-xxxxxxxx  ? new route added
+
+    Your application code does NOT change
+    Same S3 URL in your code
+    AWS intercepts the call at route table level
+    Redirects through private endpoint automatically
+
+### NAT vs VPN vs VPC Endpoint — Critical Difference
+    NAT Gateway
+      only translates IP addresses
+      does NOT encrypt data
+      does NOT create private tunnel
+      traffic still travels public internet after NAT
+      hides your private IP but not the data path
+
+    VPN
+      encrypts entire packet end to end
+      creates secure tunnel over public internet
+      used for on-premises to AWS connectivity (hybrid cloud)
+      NOT used for service to service inside AWS
+
+    VPC Endpoint
+      traffic never leaves AWS network
+      no encryption needed — physically separate network
+      free for S3 and DynamoDB
+      fastest path — direct AWS backbone
+      passes compliance audits (PCI-DSS, HIPAA, SOC2)
+
+### When to Use Each
+    VPC Endpoint  ? AWS service to AWS service (S3, DynamoDB, SQS)
+    NAT Gateway   ? AWS service to external internet (Stripe, Twilio)
+    VPN           ? on-premises office to AWS VPC
+
+### Terraform Code (works on real AWS, commented out for Floci)
+    resource "aws_vpc_endpoint" "s3" {
+      vpc_id            = aws_vpc.main.id
+      service_name      = "com.amazonaws.us-east-1.s3"
+      vpc_endpoint_type = "Gateway"
+      route_table_ids   = [
+        aws_route_table.private.id,
+        aws_route_table.data.id
+      ]
+    }
+
+### Floci Limitations Discovered
+| Feature | Floci Support | Real AWS |
+|---------|--------------|----------|
+| VPC + Subnets | Supported | Supported |
+| Internet Gateway | Supported | Supported |
+| Security Groups | Supported | Supported |
+| Route Tables | Supported | Supported |
+| NAT Gateway | NOT supported | Supported |
+| VPC Endpoints | NOT supported | Supported |
+
+### Additional Interview Questions
+
+Q11: What is a VPC Endpoint and why use it?
+A VPC Endpoint creates a private connection between your VPC and AWS
+services like S3 without traffic leaving the AWS network. Gateway endpoints
+for S3 and DynamoDB are free and work by adding a route to your route table.
+Interface endpoints create an ENI in your subnet for other AWS services.
+Critical for compliance standards like PCI-DSS that forbid payment data
+from traversing public networks even if encrypted.
+
+Q12: What is the difference between a Gateway and Interface endpoint?
+Gateway endpoint is just a route rule added to your route table - free,
+only for S3 and DynamoDB, no component created in subnet. Interface endpoint
+creates an actual Elastic Network Interface with a private IP inside your
+subnet, costs money, but works for 100+ AWS services including SQS,
+Secrets Manager, and ECR.
+
+Q13: Why does NAT not provide the same security as a VPC Endpoint?
+NAT only translates IP addresses - it does not encrypt data or create a
+private network path. Traffic from a private subnet through NAT still
+travels over public internet infrastructure after leaving the AWS network.
+VPC Endpoints route traffic over the AWS private backbone which never
+touches the public internet. Compliance standards care about the network
+path not just encryption.
+
+Q14: What is the difference between NAT Gateway and VPN?
+NAT translates private IPs to public IPs for outbound internet access -
+it is a routing mechanism with no encryption. VPN creates an encrypted
+tunnel typically used for connecting on-premises networks to AWS VPC over
+public internet. NAT is for cloud resources reaching internet services.
+VPN is for hybrid connectivity between data centers and cloud.
