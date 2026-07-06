@@ -1,0 +1,75 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.44.1.10279",
+      "templateHash": "12804210210633918876"
+    }
+  },
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "defaultValue": "dev"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ServiceBus/namespaces",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}-servicebus', parameters('environment'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard"
+      },
+      "tags": {
+        "environment": "[parameters('environment')]",
+        "managedBy": "bicep"
+      }
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/queues",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', format('{0}-servicebus', parameters('environment')), 'payment-queue')]",
+      "properties": {
+        "maxDeliveryCount": 10,
+        "lockDuration": "PT1M",
+        "deadLetteringOnMessageExpiration": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', format('{0}-servicebus', parameters('environment')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/topics",
+      "apiVersion": "2021-06-01-preview",
+      "name": "[format('{0}/{1}', format('{0}-servicebus', parameters('environment')), 'notification-topic')]",
+      "properties": {
+        "defaultMessageTimeToLive": "P1D"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', format('{0}-servicebus', parameters('environment')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "serviceBusId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ServiceBus/namespaces', format('{0}-servicebus', parameters('environment')))]"
+    },
+    "serviceBusEndpoint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.ServiceBus/namespaces', format('{0}-servicebus', parameters('environment'))), '2021-06-01-preview').serviceBusEndpoint]"
+    },
+    "paymentQueueId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ServiceBus/namespaces/queues', format('{0}-servicebus', parameters('environment')), 'payment-queue')]"
+    }
+  }
+}

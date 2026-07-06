@@ -280,3 +280,80 @@ resolves the secret at deploy time and injects it without it appearing in
 your code or state. Combined with enableRbacAuthorization on the Key Vault
 and Managed Identity on the deploying service you get zero hardcoded secrets
 in the entire deployment pipeline.
+---
+
+## Day 3 Final Additions
+
+### Key Vault - Parent/Child Auto-Dependency
+    Bicep:
+      resource secret '...secrets@...' = {
+        parent: keyVault
+        name: 'db-password'
+      }
+
+    ARM generated automatically:
+      "name": "[format('{0}/{1}', parameters('keyVaultName'), 'db-password')]"
+      "dependsOn": ["[resourceId('Microsoft.KeyVault/vaults', ...)]"]
+
+    Bicep inferred the dependsOn from parent: keyVault
+    Forgetting dependsOn in raw ARM is one of the most common bugs
+    Bicep eliminates this entire class of errors
+
+### Service Bus - AWS Equivalent
+    Service Bus Namespace  -> like SQS/SNS account
+    Service Bus Queue      -> SQS queue (maxDeliveryCount, lockDuration)
+    Service Bus Topic      -> SNS topic (fan out to subscribers)
+    deadLetteringOnMessageExpiration -> SQS DLQ equivalent
+
+### Azure Functions + APIM - AWS Equivalent
+    Azure Function (Consumption plan, sku Y1/Dynamic)
+      -> Lambda (pay per execution, true serverless)
+
+    APIM (sku Consumption)
+      -> API Gateway HTTP API
+
+    APIM routes /fraud/* to Function defaultHostName
+      -> ALB routes /api/* to Lambda target group
+      Same pattern: gateway in front, serverless compute behind
+
+    functionApp.properties.defaultHostName
+      Bicep can reference auto-generated values BEFORE deployment
+      because Bicep resolves the dependency graph at compile time
+
+### Day 3 Complete - Files Written
+    storage.bicep        - Storage Account
+    vnet.bicep            - VNet + 3 subnets + 3 NSGs
+    keyvault.bicep        - Key Vault + secret
+    servicebus.bicep      - Namespace + queue + topic
+    functions-apim.bicep  - Function App + APIM + API
+    modules/vnet/vnet.bicep - reusable module
+    envs/dev, envs/staging - module callers
+
+### Additional Interview Questions
+
+Q11: How does Bicep parent/child syntax prevent common ARM bugs?
+Using parent: keyVault on a child resource like a secret automatically
+generates the correct name path (vaultName/secretName) and adds the
+dependsOn entry in ARM. In raw ARM, engineers often forget dependsOn
+which causes the secret creation to race against vault creation and fail
+intermittently. Bicep infers this from the parent reference at compile time.
+
+Q12: What is the Azure equivalent of SQS and SNS?
+Service Bus Queue is the equivalent of SQS - point to point messaging
+with maxDeliveryCount for retries and dead-lettering for failed messages.
+Service Bus Topic is the equivalent of SNS - one message fans out to
+multiple subscriptions. Both support the same reliability patterns.
+
+Q13: How do Azure Functions and APIM compare to Lambda and API Gateway?
+Azure Functions on a Consumption plan (sku Y1, tier Dynamic) is true
+serverless - pay only per execution, same model as Lambda. APIM on the
+Consumption tier is the equivalent of API Gateway HTTP API - it provides
+a gateway layer with routing, rate limiting, and API keys in front of
+the Function, just like API Gateway sits in front of Lambda.
+
+Q14: How does Bicep reference auto-generated resource properties before deployment?
+Bicep resolves the full dependency graph at compile time, so you can write
+functionApp.properties.defaultHostName in another resource's properties
+even though that hostname is only assigned by Azure during deployment.
+ARM inserts a reference() function call that Azure evaluates at deploy time
+in the correct order based on the dependency graph Bicep built.
