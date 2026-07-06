@@ -1,0 +1,1 @@
+{"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"message\": \"Hello from Lambda\", \"container_age_seconds\": 7.59, \"request_id\": \"a307809b-ae3f-43c1-af90-182242627b2b\", \"memory_mb\": \"128\"}"}
