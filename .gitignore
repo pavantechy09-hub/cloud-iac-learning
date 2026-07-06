@@ -21,3 +21,6 @@ Thumbs.db
 # Terraform data and plugin cache
 .terraform-data/
 .terraform-plugins/
+
+# Azure CLI local cache and binaries
+.azure/
