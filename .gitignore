@@ -17,3 +17,7 @@ tfplan
 # OS files
 .DS_Store
 Thumbs.db
+
+# Terraform data and plugin cache
+.terraform-data/
+.terraform-plugins/
