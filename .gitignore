@@ -1,0 +1,19 @@
+# Terraform providers and plugins - huge binaries
+.terraform/
+.terraform.lock.hcl
+
+# State files - never commit
+*.tfstate
+*.tfstate.*
+terraform.tfstate.d/
+
+# Plan files
+tfplan
+*.tfplan
+
+# Var files may contain secrets
+*.tfvars
+
+# OS files
+.DS_Store
+Thumbs.db
