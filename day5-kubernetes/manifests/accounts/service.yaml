@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: accounts-service
+  namespace: accounts 
+spec:
+  selector:
+    app: accounts-service  #→ finds pods with this label, sends traffic to them
+  ports:
+  - protocol: TCP
+    port: 80     # → what other services call this Service on
+    targetPort: 5678   # → what port the actual container listens on
+  type: ClusterIP    #    → internal-only address, not reachable from outside cluster

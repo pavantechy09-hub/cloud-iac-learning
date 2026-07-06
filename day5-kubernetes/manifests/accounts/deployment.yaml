@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: accounts-service
+  namespace: accounts
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: accounts-service
+  template:
+    metadata:
+      labels:
+        app: accounts-service
+    spec:
+      containers:
+        - name: accounts-service
+          image: hashicorp/http-echo:1.0
+          args:
+            - "-text=Hello from accounts-service"
+          ports:
+            - containerPort: 5678
+          env:
+            - name: DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: accounts-config
+                  key: DATABASE_HOST
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: accounts-config
+                  key: LOG_LEVEL
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: accounts-db-secret
+                  key: DATABASE_PASSWORD
