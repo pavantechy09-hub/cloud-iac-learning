@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pavan Goli — Cloud & IaC Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --black: #0A0A0A; --white: #F5F4F0; --muted: #8A8880;
+    --border: #1E1E1E; --green: #22C55E;
+    --mono: 'IBM Plex Mono', monospace; --sans: 'Inter', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--black); color: var(--white); font-family: var(--sans); font-size: 15px; line-height: 1.6; overflow-x: hidden; }
+  header { border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(8px); z-index: 100; }
+  .logo { font-family: var(--mono); font-size: 13px; color: var(--muted); letter-spacing: .05em; }
+  .logo span { color: var(--green); }
+  nav a { color: var(--muted); text-decoration: none; font-size: 13px; margin-left: 2rem; transition: color .2s; }
+  nav a:hover { color: var(--white); }
+  .hero { padding: 7rem 2rem 5rem; max-width: 860px; margin: 0 auto; }
+  .hero-tag { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 1.5rem; display: flex; align-items: center; gap: .5rem; }
+  .hero-tag::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  h1 { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 300; line-height: 1.1; letter-spacing: -.02em; margin-bottom: 1.5rem; }
+  h1 strong { font-weight: 600; }
+  .hero-sub { font-size: 1.05rem; color: var(--muted); max-width: 560px; margin-bottom: 2.5rem; line-height: 1.7; }
+  .hero-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem 1.2rem; border-radius: 4px; font-size: 13px; font-weight: 500; text-decoration: none; transition: all .2s; cursor: pointer; border: none; }
+  .btn-primary { background: var(--white); color: var(--black); }
+  .btn-primary:hover { background: #ddd; }
+  .btn-outline { background: transparent; color: var(--white); border: 1px solid var(--border); }
+  .btn-outline:hover { border-color: var(--muted); }
+  .stats { max-width: 860px; margin: 0 auto 5rem; padding: 0 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .stat { padding: 1.5rem; background: #0E0E0E; }
+  .stat-n { font-family: var(--mono); font-size: 2rem; font-weight: 500; color: var(--white); line-height: 1; margin-bottom: .3rem; }
+  .stat-n span { color: var(--green); font-size: 1.2rem; }
+  .stat-l { font-size: 12px; color: var(--muted); }
+  section { max-width: 860px; margin: 0 auto; padding: 4rem 2rem; border-top: 1px solid var(--border); }
+  .section-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 2rem; }
+  h2 { font-size: 1.6rem; font-weight: 500; margin-bottom: 1rem; letter-spacing: -.01em; }
+  .days { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2rem; }
+  .day { background: #0E0E0E; padding: 1.4rem; transition: background .2s; }
+  .day:hover { background: #141414; }
+  .day-num { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: .6rem; }
+  .day-title { font-size: 14px; font-weight: 500; margin-bottom: .5rem; }
+  .day-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .day-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: .8rem; }
+  .tag { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 3px; border: 1px solid; }
+  .tag-tf { color: #A78BFA; border-color: #3B1F6B; }
+  .tag-aws { color: #FBB84B; border-color: #6B4A00; }
+  .tag-az { color: #60A5FA; border-color: #1E3A5F; }
+  .tag-k8s { color: #67E8F9; border-color: #164E63; }
+  .tag-sec { color: #F87171; border-color: #7F1D1D; }
+  .tag-ci { color: #86EFAC; border-color: #14532D; }
+  .stack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-top: 2rem; }
+  .stack-item { border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem; background: #0E0E0E; }
+  .stack-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: .8rem; }
+  .stack-name { font-size: 13px; font-weight: 500; margin-bottom: .3rem; }
+  .stack-desc { font-size: 11px; color: var(--muted); }
+  .concepts { margin-top: 2rem; display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .concept { background: #0E0E0E; padding: 1.2rem 1.4rem; display: grid; grid-template-columns: 200px 1fr; gap: 1rem; align-items: start; transition: background .2s; }
+  .concept:hover { background: #141414; }
+  .concept-q { font-size: 13px; font-weight: 500; }
+  .concept-a { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .concept-a code { font-family: var(--mono); font-size: 11px; background: #1A1A1A; padding: 1px 4px; border-radius: 3px; color: var(--green); }
+  footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: 860px; margin: 0 auto; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--white); }
+  @media (max-width: 600px) { .concept { grid-template-columns: 1fr; } nav a:not(:last-child) { display: none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">~/<span>pavantechy09-hub</span>/cloud-iac-learning</div>
+  <nav>
+    <a href="#journey">Journey</a>
+    <a href="#stack">Stack</a>
+    <a href="#concepts">Concepts</a>
+    <a href="https://github.com/pavantechy09-hub/cloud-iac-learning" target="_blank">GitHub ↗</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">10-day intensive · zero cloud spend · all hands-on</div>
+  <h1>Built a <strong>bank's cloud platform</strong><br>from scratch.</h1>
+  <p class="hero-sub">AWS + Azure + Kubernetes — deployed with Terraform, Bicep, and real IaC discipline. Every concept proven hands-on using Floci local emulation. Zero copy-paste without understanding.</p>
+  <div class="hero-links">
+    <a class="btn btn-primary" href="https://github.com/pavantechy09-hub/cloud-iac-learning" target="_blank">View on GitHub</a>
+    <a class="btn btn-outline" href="https://linkedin.com/in/pavan-goli" target="_blank">LinkedIn ↗</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n">10<span>d</span></div><div class="stat-l">Days of learning</div></div>
+  <div class="stat"><div class="stat-n">105<span>h</span></div><div class="stat-l">Hands-on hours</div></div>
+  <div class="stat"><div class="stat-n">42<span>+</span></div><div class="stat-l">Labs built</div></div>
+  <div class="stat"><div class="stat-n">3</div><div class="stat-l">Clouds covered</div></div>
+  <div class="stat"><div class="stat-n">$0</div><div class="stat-l">Cloud spend</div></div>
+</div>
+
+<section id="journey">
+  <div class="section-label">The journey</div>
+  <h2>What was built, day by day</h2>
+  <div class="days">
+    <div class="day"><div class="day-num">DAY 01</div><div class="day-title">Terraform Foundations</div><div class="day-desc">State file internals, drift detection, workspaces, S3 remote backend. The init → plan → apply → destroy cycle from scratch.</div><div class="day-tags"><span class="tag tag-tf">Terraform</span><span class="tag tag-aws">AWS</span></div></div>
+    <div class="day"><div class="day-num">DAY 02</div><div class="day-title">VPC Networking</div><div class="day-desc">3-tier VPC: public, private, data subnets. IGW, NAT, route tables, security groups. Reusable module deployed to dev and staging.</div><div class="day-tags"><span class="tag tag-tf">Terraform</span><span class="tag tag-aws">AWS</span></div></div>
+    <div class="day"><div class="day-num">DAY 03</div><div class="day-title">Bicep + ARM</div><div class="day-desc">Azure VNet, NSG with priority rules, Key Vault parent/child pattern, Service Bus, Azure Functions + APIM. Compiled to ARM JSON.</div><div class="day-tags"><span class="tag tag-az">Bicep</span><span class="tag tag-az">ARM</span></div></div>
+    <div class="day"><div class="day-num">DAY 04</div><div class="day-title">Serverless</div><div class="day-desc">Lambda + API Gateway end-to-end. SQS event trigger. DLQ after 3 retries. Least-privilege IAM. Cold starts measured: 0.0s → 3.85s → 7.59s.</div><div class="day-tags"><span class="tag tag-aws">Lambda</span><span class="tag tag-tf">Terraform</span></div></div>
+    <div class="day"><div class="day-num">DAY 05</div><div class="day-title">Kubernetes</div><div class="day-desc">Real kind cluster. Self-healing proven live. RBAC verified with kubectl auth can-i. Ingress routing. Secrets decoded to prove non-encryption. NetworkPolicy gap discovered and documented.</div><div class="day-tags"><span class="tag tag-k8s">Kubernetes</span><span class="tag tag-sec">RBAC</span></div></div>
+    <div class="day"><div class="day-num">DAY 06</div><div class="day-title">Databases + Storage</div><div class="day-desc">RDS PostgreSQL with encryption. Secrets Manager JSON pattern. S3 lifecycle: Standard → IA → Glacier → 7-year delete for banking compliance. CosmosDB + Azure SQL in Bicep.</div><div class="day-tags"><span class="tag tag-aws">RDS</span><span class="tag tag-az">CosmosDB</span></div></div>
+    <div class="day"><div class="day-num">DAY 07</div><div class="day-title">Security</div><div class="day-desc">Cross-account IAM with MFA condition — ASIA credentials proven live. Route53 private hosted zone bank.internal. Checkov: 132 passed, 87 findings, top issues fixed.</div><div class="day-tags"><span class="tag tag-sec">IAM</span><span class="tag tag-aws">Route53</span></div></div>
+    <div class="day"><div class="day-num">DAY 08</div><div class="day-title">CI/CD Pipelines</div><div class="day-desc">GitHub Actions: Checkov → plan on PR, apply on merge. OIDC — zero static credentials. Drift detection at 6am daily. Azure DevOps pipeline for Bicep.</div><div class="day-tags"><span class="tag tag-ci">GitHub Actions</span><span class="tag tag-az">Azure DevOps</span></div></div>
+    <div class="day"><div class="day-num">DAY 09</div><div class="day-title">Monitoring</div><div class="day-desc">CloudWatch alarms: Lambda errors, p99 duration, throttles, SQS depth, RDS CPU, free storage. SNS alerting. Azure Monitor + Log Analytics in Bicep.</div><div class="day-tags"><span class="tag tag-aws">CloudWatch</span><span class="tag tag-az">Azure Monitor</span></div></div>
+    <div class="day"><div class="day-num">DAY 10</div><div class="day-title">Capstone</div><div class="day-desc">Complete FirstNational Bank platform. One root Terraform module: VPC + SQS + IAM + Secrets Manager + Route53 + CloudWatch. State in S3. Everything connected.</div><div class="day-tags"><span class="tag tag-tf">Terraform</span><span class="tag tag-aws">AWS</span><span class="tag tag-az">Azure</span></div></div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="section-label">Tech stack</div>
+  <h2>Tools used across 10 days</h2>
+  <div class="stack-grid">
+    <div class="stack-item"><div class="stack-icon" style="background:#2D1B69">🟣</div><div class="stack-name">Terraform</div><div class="stack-desc">Multi-cloud IaC. Modules, state, workspaces, remote backend, Checkov</div></div>
+    <div class="stack-item"><div class="stack-icon" style="background:#1A1200">🟠</div><div class="stack-name">AWS</div><div class="stack-desc">VPC, Lambda, RDS, SQS, IAM, Route53, CloudWatch, Secrets Manager</div></div>
+    <div class="stack-item"><div class="stack-icon" style="background:#001830">🔵</div><div class="stack-name">Azure + Bicep</div><div class="stack-desc">VNet, NSG, Key Vault, Functions, APIM, CosmosDB, Azure Monitor</div></div>
+    <div class="stack-item"><div class="stack-icon" style="background:#001830">⚙️</div><div class="stack-name">Kubernetes</div><div class="stack-desc">kind cluster, Deployments, Services, Ingress, RBAC, NetworkPolicy</div></div>
+    <div class="stack-item"><div class="stack-icon" style="background:#001400">✅</div><div class="stack-name">Checkov</div><div class="stack-desc">Policy-as-code. 132 passed, 87 findings fixed across 9 days of Terraform</div></div>
+    <div class="stack-item"><div class="stack-icon" style="background:#001A00">⚡</div><div class="stack-name">GitHub Actions</div><div class="stack-desc">OIDC auth, plan on PR, apply on merge, drift detection 6am daily</div></div>
+    <div class="stack-item"><div class="stack-icon" style="background:#0A0A0A">🐳</div><div class="stack-name">Floci</div><div class="stack-desc">Local AWS + Azure emulator. Zero cloud spend across all 10 days</div></div>
+    <div class="stack-item"><div class="stack-icon" style="background:#1A0000">🔐</div><div class="stack-name">IAM + Secrets</div><div class="stack-desc">Least-privilege, cross-account roles, MFA conditions, OIDC, Vault concepts</div></div>
+  </div>
+</section>
+
+<section id="concepts">
+  <div class="section-label">Key concepts</div>
+  <h2>What I can explain from hands-on experience</h2>
+  <div class="concepts">
+    <div class="concept"><div class="concept-q">Terraform state</div><div class="concept-a">Terraform's memory of what it created. Maps <code>.tf</code> resources to real IDs. Stored in S3 with DynamoDB locking. Drift = gap between state and reality — proved by deleting a resource manually and watching plan detect it.</div></div>
+    <div class="concept"><div class="concept-q">VPC 3-tier design</div><div class="concept-a">Public subnet: ALB + NAT Gateway. Private subnet: app servers, no public IP. Data subnet: databases, zero internet route. Security groups use <code>security_groups</code> references not CIDR so auto-scaling doesn't break rules.</div></div>
+    <div class="concept"><div class="concept-q">Lambda cold start</div><div class="concept-a">Proved with real data: <code>container_age = 0.0s</code> cold, <code>3.85s</code> warm, <code>7.59s</code> still warm. Code outside <code>handler()</code> runs once. Fix: Provisioned Concurrency for payment flows where cold starts are unacceptable.</div></div>
+    <div class="concept"><div class="concept-q">Kubernetes self-healing</div><div class="concept-a">Deleted a pod. ReplicaSet Controller detected desired=3, actual=2 in etcd. New pod appeared in 41 seconds. Service routed traffic immediately — user never noticed. Proved not described.</div></div>
+    <div class="concept"><div class="concept-q">K8s Secrets not encrypted</div><div class="concept-a">Decoded <code>SuperSecretBankPassword123</code> from a Secret in one line — no special tools. Base64 is encoding not encryption. Fix: etcd encryption-at-rest + External Secrets Operator backed by real secrets manager.</div></div>
+    <div class="concept"><div class="concept-q">NetworkPolicy gap</div><div class="concept-a">Wrote a correct NetworkPolicy restricting a namespace. Traffic from blocked namespace still got through. Root cause: <code>kindnet</code> does not enforce NetworkPolicy. Calico does. Tested not assumed — documented in README.</div></div>
+    <div class="concept"><div class="concept-q">Secrets Manager pattern</div><div class="concept-a">Store full connection JSON: host, port, username, password, dbname. App reads one secret at startup. Lambda execution role gets <code>secretsmanager:GetSecretValue</code> on that specific ARN only — nothing else.</div></div>
+    <div class="concept"><div class="concept-q">OIDC vs static credentials</div><div class="concept-a">GitHub Actions proves identity to AWS cryptographically. Gets 15-minute token. Nothing stored. If GitHub is breached — no credentials to steal. Proved with real <code>ASIA</code> prefix STS output showing 1-hour expiry.</div></div>
+  </div>
+</section>
+
+<footer>
+  <p>Pavan Goli &middot; <a href="https://linkedin.com/in/pavan-goli">linkedin.com/in/pavan-goli</a> &middot; <a href="https://github.com/pavantechy09-hub/cloud-iac-learning">github.com/pavantechy09-hub</a></p>
+  <p style="margin-top:.5rem">Built with real hands-on work &middot; $0 cloud spend &middot; 10 days</p>
+</footer>
+
+</body>
+</html>
